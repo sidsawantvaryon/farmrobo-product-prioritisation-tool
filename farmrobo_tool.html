@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FarmRobo — Product Management Tool</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;color:#1a1a1a;background:#f5f5f5;min-height:100vh}
+.app{max-width:900px;margin:0 auto;padding:1rem}
+.header{background:#1A3C5E;color:#fff;padding:1rem 1.25rem;border-radius:12px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;font-weight:500;color:#fff}
+.header-sub{font-size:12px;color:#AECDE8;margin-top:2px}
+.nav{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.nav-btn{padding:7px 14px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#555;cursor:pointer;font-size:13px;transition:all 0.15s}
+.nav-btn.active{background:#1A3C5E;color:#fff;border-color:#1A3C5E;font-weight:500}
+.nav-btn:hover:not(.active){background:#f0f0f0}
+.screen{display:none}.screen.active{display:block}
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:1rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:13px;color:#555;margin-bottom:5px;font-weight:500}
+.field select,.field input,.field textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;font-family:inherit;outline:none;transition:border 0.15s}
+.field select:focus,.field input:focus,.field textarea:focus{border-color:#1A3C5E}
+.field textarea{resize:vertical;min-height:60px}
+.btn{padding:8px 18px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;cursor:pointer;font-size:14px;font-family:inherit;transition:all 0.15s}
+.btn:hover{background:#f5f5f5}
+.btn-primary{background:#1A3C5E;color:#fff;border-color:#1A3C5E;font-weight:500}
+.btn-primary:hover{background:#153354}
+.btn-danger{color:#a32d2d;border-color:#f7c1c1}
+.btn-danger:hover{background:#fcebeb}
+.badge{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600}
+.badge-p0{background:#fcebeb;color:#a32d2d}
+.badge-p1{background:#faeeda;color:#633806}
+.badge-p2{background:#f0f0f0;color:#555}
+.badge-hw{background:#e6f1fb;color:#0c447c}
+.badge-sw{background:#E1F5EE;color:#085041}
+.badge-test{background:#FAEEDA;color:#633806}
+.badge-other{background:#f0f0f0;color:#555}
+.result-box{padding:1rem;border-radius:8px;margin-top:1rem}
+.result-p0{background:#fcebeb;border:1px solid #f7c1c1}
+.result-p1{background:#faeeda;border:1px solid #fac775}
+.result-p2{background:#f5f5f5;border:1px solid #e0e0e0}
+.result-title{font-size:26px;font-weight:600;margin-bottom:4px}
+.result-p0 .result-title{color:#a32d2d}
+.result-p1 .result-title{color:#633806}
+.result-p2 .result-title{color:#555}
+.flag{padding:8px 12px;border-radius:8px;font-size:13px;margin-top:8px;background:#faeeda;color:#633806;border:1px solid #fac775}
+.fw-flag{padding:8px 12px;border-radius:8px;font-size:13px;margin-top:6px;background:#e6f1fb;color:#0c447c;border:1px solid #b5d4f4}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+.metric{background:#f5f5f5;border-radius:8px;padding:1rem;text-align:center}
+.metric-val{font-size:26px;font-weight:600;margin-bottom:4px;color:#1A3C5E}
+.metric-label{font-size:12px;color:#888}
+.task-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #e5e5e5;border-radius:8px;margin-bottom:6px;background:#fff;flex-wrap:wrap}
+.task-name{flex:1;font-size:14px;font-weight:500;min-width:100px}
+.task-meta{font-size:12px;color:#888}
+.log-row{padding:10px 12px;border:1px solid #e5e5e5;border-radius:8px;margin-bottom:6px;background:#fff}
+.log-header{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.test-row{padding:10px 12px;border:1px solid #e5e5e5;border-radius:8px;margin-bottom:6px;background:#fff}
+.test-pass{background:#eaf3de;border-color:#c0dd97}
+.test-fail{background:#fcebeb;border-color:#f7c1c1}
+.divider{height:1px;background:#e5e5e5;margin:1rem 0}
+.empty{text-align:center;padding:2rem;color:#aaa;font-size:14px}
+.progress-bar{height:8px;background:#e5e5e5;border-radius:4px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:4px;background:#3B6D11;transition:width 0.3s}
+.progress-fill.warn{background:#BA7517}
+.progress-fill.danger{background:#a32d2d}
+.save-flash{display:inline-block;font-size:12px;color:#3B6D11;margin-left:10px;opacity:0;transition:opacity 0.3s}
+.save-flash.show{opacity:1}
+.section-label{font-size:14px;font-weight:600;color:#1A3C5E;margin:1rem 0 0.5rem}
+select[id="st-owner"],select[id="t-engineer"],select[id="l-engineer"]{font-size:13px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+  <div>
+    <div class="header h1" style="font-size:18px;font-weight:600">FarmRobo — Product Management Tool</div>
+    <div class="header-sub">Prioritisation · Sprint Planning · Daily Log · Test Logger</div>
+  </div>
+  <span class="save-flash" id="save-flash">Saved</span>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showScreen('priority',event)">Prioritise task</button>
+  <button class="nav-btn" onclick="showScreen('sprint',event)">Sprint planner</button>
+  <button class="nav-btn" onclick="showScreen('log',event)">Daily log</button>
+  <button class="nav-btn" onclick="showScreen('test',event)">Test logger</button>
+  <button class="nav-btn" onclick="showScreen('admin',event)">Admin</button>
+  <button class="nav-btn" onclick="showScreen('report',event)">Reports</button>
+</div>
+
+<!-- PRIORITY -->
+<div id="screen-priority" class="screen active">
+  <div class="card">
+    <div class="card-title">Task prioritisation — answer all questions</div>
+    <div class="grid2">
+      <div class="field"><label>Product</label>
+        <select id="p-product"><option value="">Select product</option><option>R1V2</option><option>R5</option><option>R2</option><option>R4</option><option>New</option></select></div>
+      <div class="field"><label>Work type</label>
+        <select id="p-type"><option value="">Select type</option><option>Hardware</option><option>Software</option><option>Testing</option><option>Other</option></select></div>
+    </div>
+    <div class="field"><label>Task name</label><input type="text" id="p-name" placeholder="Brief description of the task"></div>
+    <div class="grid2">
+      <div class="field"><label>Current product stage</label>
+        <select id="p-stage"><option value="">Select</option><option value="S0">S0 — Idea</option><option value="S1">S1 — Feasibility</option><option value="S2">S2 — Spec lock</option><option value="S3">S3 — Prototype</option><option value="S4">S4 — Field trial</option><option value="S5">S5 — Production</option></select></div>
+      <div class="field"><label>Gate criticality</label>
+        <select id="p-gate"><option value="">Select</option><option value="required">Required to exit current gate</option><option value="helps">Helps but not gate-critical</option><option value="unrelated">Unrelated to current gate</option></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>If delayed one sprint, what happens?</label>
+        <select id="p-delay"><option value="">Select</option><option value="slips">Field trial or production date slips</option><option value="blocked">Another task is blocked</option><option value="nothing">Nothing material</option><option value="unknown">Unknown</option></select></div>
+      <div class="field"><label>Field failure fix?</label>
+        <select id="p-failure"><option value="">Select</option><option value="critical">Yes — critical failure</option><option value="operational">Yes — operational failure</option><option value="minor">Yes — minor failure</option><option value="none">No, not a field fix</option></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Firmware dependency</label>
+        <select id="p-firmware"><option value="">Select</option><option value="blocked">Blocked until firmware ready</option><option value="change">Firmware needs to change</option><option value="none">No firmware dependency</option></select></div>
+      <div class="field"><label>Safety classification</label>
+        <select id="p-safety"><option value="">Select</option><option value="critical">Safety-critical — could injure operator or damage crop</option><option value="operational">Operationally important — no safety risk</option><option value="low">Low — cosmetic or minor</option></select></div>
+    </div>
+    <div class="field"><label>Raised by</label>
+      <select id="p-raised"><option value="">Select</option><option>Engineering team</option><option>Srikanth</option><option>Customer</option><option>Field trial observation</option><option>Other</option></select></div>
+    <button class="btn btn-primary" onclick="prioritise()">Get priority</button>
+    <div id="p-result"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Prioritised backlog</div>
+    <div id="backlog-list"></div>
+    <div class="empty" id="backlog-empty">No tasks prioritised yet.</div>
+  </div>
+</div>
+
+<!-- SPRINT -->
+<div id="screen-sprint" class="screen">
+  <div class="card">
+    <div class="card-title">Sprint header</div>
+    <div class="grid2">
+      <div class="field"><label>Sprint number</label><input type="number" id="s-num" placeholder="e.g. 1" min="1" onchange="saveSprintHeader()"></div>
+      <div class="field"><label>Sprint dates</label><input type="text" id="s-dates" placeholder="e.g. 1 Apr – 14 Apr" onchange="saveSprintHeader()"></div>
+    </div>
+    <div class="field"><label>Sprint goal — one sentence</label><input type="text" id="s-goal" placeholder="What does this sprint advance toward the 90-day goal?" onchange="saveSprintHeader()"></div>
+    <div class="grid2">
+      <div class="field"><label>Active gate</label>
+        <select id="s-gate" onchange="saveSprintHeader()"><option value="">Select</option><option>S0 — Idea</option><option>S1 — Feasibility</option><option>S2 — Spec lock</option><option>S3 — Prototype</option><option>S4 — Field trial</option><option>S5 — Production</option></select></div>
+      <div class="field"><label>Total capacity (engineer-days)</label><input type="number" id="s-capacity" placeholder="e.g. 140" min="0" onchange="saveSprintHeader()"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Add task to sprint</div>
+    <div class="grid2">
+      <div class="field"><label>Task name</label><input type="text" id="st-name" placeholder="Task description"></div>
+      <div class="field"><label>Owner</label>
+        <select id="st-owner"><option value="">Select owner</option><option>Vignesh Rajendran</option><option>Rameshprabha Karikalan</option><option>Mohanraj Dharmaraj</option><option>Saikumar Kolu</option><option>Manikanteshwara Reddy Palle</option><option>Koteswara Rao Pulimela</option><option>Sanganna Vadla</option><option>Ganapathi Thanigachalam</option><option>Prasath Chittibabu</option><option>Siva Kumar</option><option>Vishwa Teja Pottabathini</option><option>Dineshwaran V</option><option>Hari Prasath</option><option>Baditya Arupananda</option></select></div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Type</label>
+        <select id="st-type"><option value="">Type</option><option>Hardware</option><option>Software</option><option>Testing</option><option>Other</option></select></div>
+      <div class="field"><label>Priority</label>
+        <select id="st-priority"><option value="">Priority</option><option>P0</option><option>P1</option><option>P2</option></select></div>
+      <div class="field"><label>Estimated hours</label><input type="number" id="st-hours" placeholder="Hours" min="0"></div>
+    </div>
+    <div class="field"><label>Definition of done</label><input type="text" id="st-dod" placeholder="How do we know this task is complete?"></div>
+    <button class="btn btn-primary" onclick="addSprintTask()">Add task</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Sprint tasks</div>
+    <div class="grid3" style="margin-bottom:1rem">
+      <div class="metric"><div class="metric-val" id="s-total-tasks">0</div><div class="metric-label">Total tasks</div></div>
+      <div class="metric"><div class="metric-val" id="s-p0-count">0</div><div class="metric-label">P0 tasks</div></div>
+      <div class="metric"><div class="metric-val" id="s-total-hours">0</div><div class="metric-label">Total hours</div></div>
+    </div>
+    <div id="p0-conc-bar" style="display:none;margin-bottom:1rem;padding:12px;background:#f5f5f5;border-radius:8px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px">
+        <span>P0 hour concentration</span><span id="p0-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="p0-fill" style="width:0%"></div></div>
+      <div id="p0-warn" style="display:none;margin-top:8px" class="flag">P0 concentration below 70%. Review task allocation before locking this sprint.</div>
+    </div>
+    <div id="sprint-task-list"></div>
+    <div class="empty" id="sprint-empty">No tasks added yet.</div>
+  </div>
+</div>
+
+<!-- DAILY LOG -->
+<div id="screen-log" class="screen">
+  <div class="card">
+    <div class="card-title">Log daily work — takes 2 minutes</div>
+    <div class="grid2">
+      <div class="field"><label>Engineer</label>
+        <select id="l-engineer"><option value="">Select engineer</option><option>Vignesh Rajendran</option><option>Rameshprabha Karikalan</option><option>Mohanraj Dharmaraj</option><option>Saikumar Kolu</option><option>Manikanteshwara Reddy Palle</option><option>Koteswara Rao Pulimela</option><option>Sanganna Vadla</option><option>Ganapathi Thanigachalam</option><option>Prasath Chittibabu</option><option>Siva Kumar</option><option>Vishwa Teja Pottabathini</option><option>Dineshwaran V</option><option>Hari Prasath</option><option>Baditya Arupananda</option></select></div>
+      <div class="field"><label>Date</label><input type="date" id="l-date"></div>
+    </div>
+    <div class="field"><label>What did you work on?</label><input type="text" id="l-task" placeholder="Task or activity description"></div>
+    <div class="grid2">
+      <div class="field"><label>Hours logged</label><input type="number" id="l-hours" placeholder="Hours" min="0" max="24" step="0.5"></div>
+      <div class="field"><label>Status</label>
+        <select id="l-status"><option value="">Status</option><option>In progress</option><option>Done</option><option>Blocked</option></select></div>
+    </div>
+    <div class="field"><label>Blocker — leave blank if not blocked</label><input type="text" id="l-blocker" placeholder="What is blocking you? Be specific."></div>
+    <button class="btn btn-primary" onclick="addLog()">Log entry</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Log entries</div>
+    <div id="log-list"></div>
+    <div class="empty" id="log-empty">No entries logged yet.</div>
+  </div>
+</div>
+
+<!-- TEST LOGGER -->
+<div id="screen-test" class="screen">
+  <div class="card">
+    <div class="card-title">Log test or field trial session</div>
+    <div class="grid2">
+      <div class="field"><label>Test type</label>
+        <select id="t-type" onchange="toggleTestFields()"><option value="">Select</option><option value="bench">Bench test (hardware)</option><option value="field">Field trial session</option></select></div>
+      <div class="field"><label>Product</label>
+        <select id="t-product"><option value="">Select</option><option>R1V2</option><option>R5</option><option>R2</option><option>R4</option></select></div>
+    </div>
+    <div id="bench-fields">
+      <div class="grid2">
+        <div class="field"><label>Component tested</label><input type="text" id="t-component" placeholder="e.g. Depth mechanism, seeding actuator"></div>
+        <div class="field"><label>Test description</label><input type="text" id="t-desc" placeholder="e.g. 50 placements at ±1cm tolerance"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Engineer</label>
+          <select id="t-engineer"><option value="">Select</option><option>Vignesh Rajendran</option><option>Rameshprabha Karikalan</option><option>Mohanraj Dharmaraj</option><option>Saikumar Kolu</option><option>Manikanteshwara Reddy Palle</option><option>Koteswara Rao Pulimela</option><option>Sanganna Vadla</option><option>Ganapathi Thanigachalam</option><option>Prasath Chittibabu</option><option>Siva Kumar</option><option>Vishwa Teja Pottabathini</option><option>Dineshwaran V</option><option>Hari Prasath</option><option>Baditya Arupananda</option></select></div>
+        <div class="field"><label>Result</label>
+          <select id="t-result"><option value="">Select</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="partial">Partial</option></select></div>
+      </div>
+    </div>
+    <div id="field-fields" style="display:none">
+      <div class="grid3">
+        <div class="field"><label>Trial tier</label>
+          <select id="t-tier"><option value="">Select</option><option value="T1">Tier 1 — Controlled (30h min)</option><option value="T2">Tier 2 — Variable (50h min)</option><option value="T3">Tier 3 — Stress (20h min)</option></select></div>
+        <div class="field"><label>Hours this session</label><input type="number" id="t-hours" placeholder="Hours" min="0" step="0.5"></div>
+        <div class="field"><label>Failure classification</label>
+          <select id="t-fail-class"><option value="">Select</option><option value="none">No failures</option><option value="critical">Critical failure</option><option value="operational">Operational failure</option><option value="minor">Minor failure</option></select></div>
+      </div>
+      <div class="field"><label>Operator name</label><input type="text" id="t-operator" placeholder="Who operated the unit?"></div>
+    </div>
+    <div class="field"><label>Remarks — observations, measurements, anything relevant</label><textarea id="t-remarks" placeholder="Be specific. This is your field record."></textarea></div>
+    <button class="btn btn-primary" onclick="addTest()">Log test</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Field trial progress</div>
+    <div id="trial-progress"></div>
+    <div class="empty" id="trial-empty">No field trial sessions logged yet.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Full test log</div>
+    <div id="test-list"></div>
+    <div class="empty" id="test-empty">No tests logged yet.</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="screen-admin" class="screen">
+  <div class="card">
+    <div class="card-title">Product hierarchy — Srikanth sets this at the start of each sprint</div>
+    <p style="font-size:13px;color:#888;margin-bottom:1rem">Sprint planning cannot begin until this is confirmed. Takes 30 seconds.</p>
+    <div class="field"><label>Primary product — P0 eligible</label>
+      <select id="a-primary"><option value="R1V2">R1V2</option><option value="R5">R5</option><option value="R2">R2</option><option value="R4">R4</option></select></div>
+    <div class="field"><label>Secondary product — P1 eligible</label>
+      <select id="a-secondary"><option value="R5">R5</option><option value="R1V2">R1V2</option><option value="R2">R2</option><option value="R4">R4</option></select></div>
+    <div class="field"><label>Parked products — P2 default (comma separated)</label>
+      <input type="text" id="a-parked" value="R2, R4" placeholder="e.g. R2, R4"></div>
+    <button class="btn btn-primary" onclick="saveAdmin()">Confirm hierarchy for this sprint</button>
+    <div id="admin-saved" style="display:none;margin-top:10px;font-size:13px;color:#3B6D11;font-weight:500">Hierarchy confirmed and saved.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Interrupt log — log every unplanned task that enters the sprint</div>
+    <div class="grid2">
+      <div class="field"><label>What was requested?</label><input type="text" id="int-desc" placeholder="Describe the interrupt"></div>
+      <div class="field"><label>Raised by</label>
+        <select id="int-by"><option value="">Select</option><option>Srikanth</option><option>Customer</option><option>Field observation</option><option>Engineering team</option><option>Other</option></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Date</label><input type="date" id="int-date"></div>
+      <div class="field"><label>Which sprint task was displaced?</label><input type="text" id="int-displaced" placeholder="What planned task was dropped or delayed?"></div>
+    </div>
+    <button class="btn" onclick="addInterrupt()">Log interrupt</button>
+    <div class="divider"></div>
+    <div id="interrupt-list"></div>
+    <div class="empty" id="interrupt-empty">No interrupts logged.</div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="color:#a32d2d">Danger zone</div>
+    <p style="font-size:13px;color:#888;margin-bottom:1rem">Clear data sets. Cannot be undone.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-danger" onclick="clearData('sprintTasks')">Clear sprint tasks</button>
+      <button class="btn btn-danger" onclick="clearData('logs')">Clear daily logs</button>
+      <button class="btn btn-danger" onclick="clearData('tests')">Clear test log</button>
+      <button class="btn btn-danger" onclick="clearData('backlog')">Clear backlog</button>
+      <button class="btn btn-danger" onclick="clearData('interrupts')">Clear interrupts</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORTS -->
+<div id="screen-report" class="screen">
+  <div class="card">
+    <div class="card-title">Sprint summary</div>
+    <div id="report-sprint"></div>
+    <button class="btn" onclick="downloadReport('sprint')" style="margin-top:1rem">Download sprint report (CSV)</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Test log report</div>
+    <div id="report-test"></div>
+    <button class="btn" onclick="downloadReport('test')" style="margin-top:1rem">Download test log (CSV)</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Blocker report</div>
+    <div id="report-blockers"></div>
+    <button class="btn" onclick="downloadReport('blockers')" style="margin-top:1rem">Download blocker report (CSV)</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Interrupt log</div>
+    <div id="report-interrupts"></div>
+    <button class="btn" onclick="downloadReport('interrupts')" style="margin-top:1rem">Download interrupt log (CSV)</button>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<script>
+const LS = 'fr_v1_';
+const state = {
+  admin:{ primary:'R1V2', secondary:'R5', parked:['R2','R4'] },
+  backlog:[], sprintTasks:[], sprintHeader:{},
+  logs:[], tests:[], trialHours:{}, interrupts:[]
+};
+
+function lsSave(key, val) {
+  try { localStorage.setItem(LS+key, JSON.stringify(val)); flashSave(); } catch(e){}
+}
+function lsLoad(key, def) {
+  try { const v=localStorage.getItem(LS+key); return v?JSON.parse(v):def; } catch(e){ return def; }
+}
+function flashSave() {
+  const el=document.getElementById('save-flash');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1400);
+}
+
+function init() {
+  state.admin = lsLoad('admin', state.admin);
+  state.backlog = lsLoad('backlog', []);
+  state.sprintTasks = lsLoad('sprintTasks', []);
+  state.sprintHeader = lsLoad('sprintHeader', {});
+  state.logs = lsLoad('logs', []);
+  state.tests = lsLoad('tests', []);
+  state.trialHours = lsLoad('trialHours', {});
+  state.interrupts = lsLoad('interrupts', []);
+  applyAdmin(); applySprintHeader();
+  renderBacklog(); renderSprintTasks(); renderLogs(); renderTests(); renderInterrupts();
+  document.getElementById('l-date').valueAsDate = new Date();
+  document.getElementById('int-date').valueAsDate = new Date();
+  toggleTestFields();
+}
+
+function applyAdmin() {
+  const a=state.admin;
+  const ps=document.getElementById('a-primary');
+  const ss=document.getElementById('a-secondary');
+  const pk=document.getElementById('a-parked');
+  if(ps) ps.value=a.primary;
+  if(ss) ss.value=a.secondary;
+  if(pk) pk.value=a.parked.join(', ');
+}
+
+function applySprintHeader() {
+  const h=state.sprintHeader;
+  const map={num:'s-num',dates:'s-dates',goal:'s-goal',gate:'s-gate',capacity:'s-capacity'};
+  Object.entries(map).forEach(([k,id])=>{ const el=document.getElementById(id); if(el&&h[k]) el.value=h[k]; });
+}
+
+function g(id){ return document.getElementById(id); }
+
+function showScreen(id,evt) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  if(evt&&evt.target) evt.target.classList.add('active');
+  if(id==='report') buildReports();
+}
+
+function saveSprintHeader() {
+  const h={num:g('s-num').value,dates:g('s-dates').value,goal:g('s-goal').value,gate:g('s-gate').value,capacity:g('s-capacity').value};
+  state.sprintHeader=h; lsSave('sprintHeader',h);
+}
+
+function prioritise() {
+  const product=g('p-product').value, type=g('p-type').value, name=g('p-name').value.trim();
+  const stage=g('p-stage').value, gate=g('p-gate').value, delay=g('p-delay').value;
+  const failure=g('p-failure').value, firmware=g('p-firmware').value, safety=g('p-safety').value;
+  if(!product||!type||!name||!stage||!gate||!delay||!failure||!firmware||!safety) {
+    g('p-result').innerHTML='<div class="flag">Please answer all nine questions before getting a priority.</div>'; return;
+  }
+  const isPrimary=product===state.admin.primary;
+  const isParked=state.admin.parked.includes(product);
+  const sn=parseInt(stage.replace('S',''));
+  let priority='P2', reasons=[], flags=[];
+  if(safety==='critical'){ priority='P0'; reasons.push('Safety-critical classification — always P0, no exceptions.'); }
+  else if(failure==='critical'){ priority='P0'; reasons.push('Critical field failure — always P0 regardless of stage.'); }
+  else if(failure==='operational'&&sn>=3){ priority='P0'; reasons.push('Operational field failure in S3 or later — P0.'); }
+  else if(failure==='minor'&&sn>=4){ priority='P0'; reasons.push('Minor field failure in S4 or S5 — P0.'); }
+  else if(delay==='slips'&&!isParked){ priority='P0'; reasons.push('Delay causes field trial or production date to slip.'); }
+  else if(gate==='required'&&isPrimary){ priority='P0'; reasons.push('Required to exit current gate on the primary product.'); }
+  else if(isParked&&safety!=='critical'){ priority='P2'; reasons.push('Product is parked — task goes to backlog.'); }
+  else if(gate==='unrelated'&&failure==='none'&&safety!=='critical'){ priority='P2'; reasons.push('Unrelated to current gate and no field failure.'); }
+  else if((delay==='nothing'||delay==='unknown')&&failure==='none'){ priority='P2'; reasons.push('No material impact from delay and no field failure.'); }
+  else if(failure==='minor'&&sn<4){ priority='P1'; reasons.push('Minor field failure before S4 — P1.'); }
+  else if(failure==='operational'&&sn<3){ priority='P1'; reasons.push('Operational failure before S3 — P1.'); }
+  else if(gate==='helps'||delay==='blocked'){ if(!isParked){ priority='P1'; reasons.push('Helps current gate or unblocks another task — schedule next sprint.'); } }
+  if(firmware==='blocked') flags.push('Firmware dependency: this task is blocked until firmware is ready. If the firmware task is P0, review this task for promotion at sprint planning.');
+  else if(firmware==='change') flags.push('Firmware dependency: firmware must change for this task. Ensure the firmware task is included in the sprint plan.');
+  const safeName=name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+  let html=`<div class="result-box result-${priority.toLowerCase()}">
+    <div class="result-title">${priority}</div>
+    <div style="font-size:14px;margin-top:6px;color:#444">${reasons.join(' ')}</div>
+  </div>`;
+  flags.forEach(f=>{ html+=`<div class="fw-flag">${f}</div>`; });
+  html+=`<div style="margin-top:12px"><button class="btn btn-primary" onclick="saveToBacklog('${safeName}','${product}','${type}','${priority}','${stage}')">Save to backlog</button></div>`;
+  g('p-result').innerHTML=html;
+}
+
+function saveToBacklog(name,product,type,priority,stage) {
+  state.backlog.push({name,product,type,priority,stage,id:Date.now()});
+  lsSave('backlog',state.backlog); renderBacklog();
+  g('p-result').innerHTML+='<div style="margin-top:8px;font-size:13px;color:#3B6D11;font-weight:500">Saved to backlog.</div>';
+}
+
+function renderBacklog() {
+  const list=g('backlog-list'), empty=g('backlog-empty');
+  const sorted=[...state.backlog].sort((a,b)=>({P0:0,P1:1,P2:2}[a.priority]-{P0:0,P1:1,P2:2}[b.priority]));
+  if(!sorted.length){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML=sorted.map(t=>`<div class="task-row">
+    <div style="flex:1"><div class="task-name">${t.name}</div><div class="task-meta">${t.product} · ${t.stage}</div></div>
+    <span class="badge badge-${t.type==='Hardware'?'hw':t.type==='Software'?'sw':t.type==='Testing'?'test':'other'}">${t.type}</span>
+    <span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>
+    <button class="btn" style="padding:4px 10px;font-size:12px" onclick="removeBacklog(${t.id})">Remove</button>
+  </div>`).join('');
+}
+
+function removeBacklog(id) {
+  state.backlog=state.backlog.filter(t=>t.id!==id); lsSave('backlog',state.backlog); renderBacklog();
+}
+
+function addSprintTask() {
+  const name=g('st-name').value.trim(), owner=g('st-owner').value;
+  const type=g('st-type').value, priority=g('st-priority').value;
+  const hours=parseFloat(g('st-hours').value)||0, dod=g('st-dod').value.trim();
+  if(!name||!owner||!type||!priority){ alert('Please fill in task name, owner, type and priority.'); return; }
+  state.sprintTasks.push({name,owner,type,priority,hours,dod,status:'Not started',id:Date.now()});
+  lsSave('sprintTasks',state.sprintTasks); renderSprintTasks();
+  g('st-name').value=''; g('st-hours').value=''; g('st-dod').value='';
+}
+
+function updateTaskStatus(id,val) {
+  const t=state.sprintTasks.find(t=>t.id===id);
+  if(t){ t.status=val; lsSave('sprintTasks',state.sprintTasks); renderSprintTasks(); }
+}
+
+function removeSprintTask(id) {
+  state.sprintTasks=state.sprintTasks.filter(t=>t.id!==id);
+  lsSave('sprintTasks',state.sprintTasks); renderSprintTasks();
+}
+
+function renderSprintTasks() {
+  const list=g('sprint-task-list'), empty=g('sprint-empty');
+  const total=state.sprintTasks.length;
+  const totalHrs=state.sprintTasks.reduce((s,t)=>s+t.hours,0);
+  const p0Hrs=state.sprintTasks.filter(t=>t.priority==='P0').reduce((s,t)=>s+t.hours,0);
+  g('s-total-tasks').textContent=total;
+  g('s-p0-count').textContent=state.sprintTasks.filter(t=>t.priority==='P0').length;
+  g('s-total-hours').textContent=Math.round(totalHrs);
+  const bar=g('p0-conc-bar');
+  if(total>0){
+    bar.style.display='block';
+    const pct=totalHrs>0?Math.round((p0Hrs/totalHrs)*100):0;
+    g('p0-pct').textContent=pct+'%';
+    g('p0-fill').style.width=pct+'%';
+    g('p0-fill').className='progress-fill'+(pct>=70?'':pct>=50?' warn':' danger');
+    g('p0-warn').style.display=(pct<70&&totalHrs>0)?'block':'none';
+  } else { bar.style.display='none'; }
+  if(!total){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const sorted=[...state.sprintTasks].sort((a,b)=>({P0:0,P1:1,P2:2}[a.priority]-{P0:0,P1:1,P2:2}[b.priority]));
+  list.innerHTML=sorted.map(t=>`<div class="task-row">
+    <div style="flex:1;min-width:100px">
+      <div class="task-name">${t.name}</div>
+      <div class="task-meta">${t.owner} · ${t.hours}h</div>
+      ${t.dod?`<div class="task-meta" style="font-style:italic;margin-top:2px">DoD: ${t.dod}</div>`:''}
+    </div>
+    <span class="badge badge-${t.type==='Hardware'?'hw':t.type==='Software'?'sw':t.type==='Testing'?'test':'other'}" style="white-space:nowrap">${t.type}</span>
+    <span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>
+    <select onchange="updateTaskStatus(${t.id},this.value)" style="font-size:12px;padding:5px 6px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer">
+      <option ${t.status==='Not started'?'selected':''}>Not started</option>
+      <option ${t.status==='In progress'?'selected':''}>In progress</option>
+      <option ${t.status==='Done'?'selected':''}>Done</option>
+      <option ${t.status==='Blocked'?'selected':''}>Blocked</option>
+    </select>
+    <button class="btn" style="padding:4px 10px;font-size:12px;white-space:nowrap" onclick="removeSprintTask(${t.id})">Remove</button>
+  </div>`).join('');
+}
+
+function addLog() {
+  const engineer=g('l-engineer').value, date=g('l-date').value;
+  const task=g('l-task').value.trim(), hours=parseFloat(g('l-hours').value)||0;
+  const status=g('l-status').value, blocker=g('l-blocker').value.trim();
+  if(!engineer||!date||!task||!status){ alert('Please fill in engineer, date, task and status.'); return; }
+  state.logs.push({engineer,date,task,hours,status,blocker,id:Date.now()});
+  lsSave('logs',state.logs); renderLogs();
+  g('l-task').value=''; g('l-hours').value=''; g('l-blocker').value='';
+}
+
+function renderLogs() {
+  const list=g('log-list'), empty=g('log-empty');
+  if(!state.logs.length){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const sc={Done:'#3B6D11',Blocked:'#a32d2d','In progress':'#633806'};
+  const bg={Done:'#eaf3de',Blocked:'#fcebeb','In progress':'#faeeda'};
+  list.innerHTML=[...state.logs].sort((a,b)=>b.date.localeCompare(a.date)).map(l=>`<div class="log-row">
+    <div class="log-header">
+      <span style="font-weight:600;font-size:14px">${l.engineer}</span>
+      <span class="badge" style="background:${bg[l.status]||'#f0f0f0'};color:${sc[l.status]||'#555'}">${l.status}</span>
+      <span class="task-meta">${l.date} · ${l.hours}h</span>
+    </div>
+    <div style="font-size:14px">${l.task}</div>
+    ${l.blocker?`<div style="font-size:13px;color:#a32d2d;margin-top:4px;font-weight:500">Blocker: ${l.blocker}</div>`:''}
+  </div>`).join('');
+}
+
+function toggleTestFields() {
+  const type=g('t-type').value;
+  g('bench-fields').style.display=type==='bench'?'block':'none';
+  g('field-fields').style.display=type==='field'?'block':'none';
+}
+
+function addTest() {
+  const type=g('t-type').value, product=g('t-product').value, remarks=g('t-remarks').value.trim();
+  if(!type||!product){ alert('Please select test type and product.'); return; }
+  let entry={type,product,remarks,id:Date.now(),date:new Date().toISOString().split('T')[0]};
+  if(type==='bench'){
+    entry.component=g('t-component').value; entry.desc=g('t-desc').value;
+    entry.engineer=g('t-engineer').value; entry.result=g('t-result').value;
+    if(!entry.component||!entry.engineer||!entry.result){ alert('Please fill in component, engineer and result.'); return; }
+  } else {
+    entry.tier=g('t-tier').value; entry.hours=parseFloat(g('t-hours').value)||0;
+    entry.failClass=g('t-fail-class').value; entry.operator=g('t-operator').value;
+    if(!entry.tier||!entry.failClass){ alert('Please fill in tier and failure classification.'); return; }
+    const key=product+'-'+entry.tier;
+    state.trialHours[key]=(state.trialHours[key]||0)+entry.hours;
+    lsSave('trialHours',state.trialHours);
+  }
+  state.tests.push(entry); lsSave('tests',state.tests); renderTests();
+  g('t-component').value=''; g('t-desc').value=''; g('t-hours').value='';
+  g('t-remarks').value=''; g('t-operator').value='';
+}
+
+function renderTests() {
+  const list=g('test-list'), empty=g('test-empty');
+  const trialDiv=g('trial-progress'), trialEmpty=g('trial-empty');
+  const fieldTests=state.tests.filter(t=>t.type==='field');
+  const tiers={T1:{label:'Tier 1 — Controlled',min:30},T2:{label:'Tier 2 — Variable',min:50},T3:{label:'Tier 3 — Stress',min:20}};
+  const products=[...new Set(fieldTests.map(t=>t.product))];
+  if(!products.length){ trialDiv.innerHTML=''; trialEmpty.style.display='block'; }
+  else {
+    trialEmpty.style.display='none';
+    trialDiv.innerHTML=products.map(prod=>`<div style="margin-bottom:1.2rem">
+      <div style="font-weight:600;font-size:14px;color:#1A3C5E;margin-bottom:8px">${prod}</div>
+      ${Object.entries(tiers).map(([k,v])=>{
+        const hrs=state.trialHours[prod+'-'+k]||0;
+        const pct=Math.min(Math.round((hrs/v.min)*100),100);
+        const cls=pct>=100?'':pct>=60?' warn':' danger';
+        return `<div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px">
+            <span>${v.label}</span><span>${Math.round(hrs)}h / ${v.min}h minimum ${pct>=100?'✓':''}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill${cls}" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+  }
+  if(!state.tests.length){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const rc={pass:'#3B6D11',fail:'#a32d2d',partial:'#633806'};
+  const rbg={pass:'#eaf3de',fail:'#fcebeb',partial:'#faeeda'};
+  const fc={none:'#3B6D11',critical:'#a32d2d',operational:'#633806',minor:'#BA7517'};
+  const fbg={none:'#eaf3de',critical:'#fcebeb',operational:'#faeeda',minor:'#faeeda'};
+  list.innerHTML=[...state.tests].reverse().map(t=>{
+    if(t.type==='bench') return `<div class="test-row ${t.result==='pass'?'test-pass':t.result==='fail'?'test-fail':''}">
+      <div class="log-header">
+        <span style="font-weight:600;font-size:14px">${t.component}</span>
+        <span class="badge" style="background:${rbg[t.result]||'#f0f0f0'};color:${rc[t.result]||'#555'}">${t.result}</span>
+        <span class="task-meta">${t.product} · ${t.engineer} · ${t.date}</span>
+      </div>
+      ${t.desc?`<div style="font-size:13px;margin-top:4px">${t.desc}</div>`:''}
+      ${t.remarks?`<div style="font-size:13px;color:#888;margin-top:4px">${t.remarks}</div>`:''}
+    </div>`;
+    return `<div class="test-row">
+      <div class="log-header">
+        <span style="font-weight:600;font-size:14px">${t.tier} Field Trial</span>
+        <span class="badge" style="background:${fbg[t.failClass]||'#f0f0f0'};color:${fc[t.failClass]||'#555'}">${t.failClass}</span>
+        <span class="task-meta">${t.product} · ${t.hours}h · ${t.date}</span>
+      </div>
+      ${t.operator?`<div style="font-size:13px;margin-top:4px">Operator: ${t.operator}</div>`:''}
+      ${t.remarks?`<div style="font-size:13px;color:#888;margin-top:4px">${t.remarks}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function addInterrupt() {
+  const desc=g('int-desc').value.trim(), by=g('int-by').value;
+  const date=g('int-date').value, displaced=g('int-displaced').value.trim();
+  if(!desc||!by||!date){ alert('Please fill in description, raised by and date.'); return; }
+  state.interrupts.push({desc,by,date,displaced,id:Date.now()});
+  lsSave('interrupts',state.interrupts); renderInterrupts();
+  g('int-desc').value=''; g('int-displaced').value='';
+}
+
+function renderInterrupts() {
+  const list=g('interrupt-list'), empty=g('interrupt-empty');
+  if(!state.interrupts.length){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML=[...state.interrupts].reverse().map(i=>`<div class="log-row">
+    <div class="log-header">
+      <span style="font-weight:600;font-size:14px">${i.desc}</span>
+      <span class="task-meta">${i.by} · ${i.date}</span>
+    </div>
+    ${i.displaced?`<div style="font-size:13px;color:#a32d2d;margin-top:4px;font-weight:500">Displaced: ${i.displaced}</div>`:''}
+  </div>`).join('');
+}
+
+function saveAdmin() {
+  state.admin={primary:g('a-primary').value,secondary:g('a-secondary').value,parked:g('a-parked').value.split(',').map(s=>s.trim()).filter(Boolean)};
+  lsSave('admin',state.admin);
+  g('admin-saved').style.display='block';
+  setTimeout(()=>{ g('admin-saved').style.display='none'; },2000);
+}
+
+function clearData(key) {
+  if(!confirm('Clear all '+key+'? This cannot be undone.')) return;
+  if(key==='sprintTasks'){ state.sprintTasks=[]; lsSave('sprintTasks',[]); renderSprintTasks(); }
+  else if(key==='logs'){ state.logs=[]; lsSave('logs',[]); renderLogs(); }
+  else if(key==='tests'){ state.tests=[]; state.trialHours={}; lsSave('tests',[]); lsSave('trialHours',{}); renderTests(); }
+  else if(key==='backlog'){ state.backlog=[]; lsSave('backlog',[]); renderBacklog(); }
+  else if(key==='interrupts'){ state.interrupts=[]; lsSave('interrupts',[]); renderInterrupts(); }
+}
+
+function buildReports() {
+  const done=state.sprintTasks.filter(t=>t.status==='Done').length;
+  const total=state.sprintTasks.length;
+  const velocity=total>0?Math.round((done/total)*100):0;
+  const blocked=state.sprintTasks.filter(t=>t.status==='Blocked').length;
+  const inprog=state.sprintTasks.filter(t=>t.status==='In progress').length;
+  g('report-sprint').innerHTML=total?`<div class="grid3" style="margin-bottom:1rem">
+    <div class="metric"><div class="metric-val">${total}</div><div class="metric-label">Tasks committed</div></div>
+    <div class="metric"><div class="metric-val">${done}</div><div class="metric-label">Tasks done</div></div>
+    <div class="metric"><div class="metric-val">${velocity}%</div><div class="metric-label">Velocity ratio</div></div>
+  </div>
+  <div style="font-size:13px;color:#888">${blocked} blocked · ${inprog} in progress · ${state.sprintTasks.filter(t=>t.status==='Not started').length} not started</div>`:'<div class="empty">No sprint tasks yet.</div>';
+  const ft=state.tests.filter(t=>t.type==='field');
+  const bt=state.tests.filter(t=>t.type==='bench');
+  g('report-test').innerHTML=state.tests.length?`<div style="font-size:14px;color:#444">${state.tests.length} total test entries — ${bt.length} bench tests, ${ft.length} field trial sessions</div><div style="font-size:13px;color:#888;margin-top:4px">${bt.filter(t=>t.result==='pass').length} bench pass · ${bt.filter(t=>t.result==='fail').length} bench fail · ${ft.filter(t=>t.failClass==='critical').length} critical failures in field</div>`:'<div class="empty">No tests logged yet.</div>';
+  const bl=state.logs.filter(l=>l.blocker);
+  g('report-blockers').innerHTML=bl.length?bl.map(l=>`<div class="log-row"><div style="font-weight:600;font-size:13px;color:#1A3C5E">${l.engineer} — ${l.date}</div><div style="font-size:13px;color:#a32d2d;margin-top:4px">${l.blocker}</div></div>`).join(''):'<div class="empty">No blockers logged.</div>';
+  g('report-interrupts').innerHTML=state.interrupts.length?`<div style="font-size:14px;color:#444;margin-bottom:8px">${state.interrupts.length} interrupts logged this sprint</div>`+state.interrupts.map(i=>`<div class="log-row"><div class="log-header"><span style="font-weight:600;font-size:13px">${i.desc}</span><span class="task-meta">${i.by} · ${i.date}</span></div>${i.displaced?`<div style="font-size:13px;color:#a32d2d;margin-top:4px">Displaced: ${i.displaced}</div>`:''}</div>`).join(''):'<div class="empty">No interrupts logged.</div>';
+}
+
+function toCSV(headers,rows) {
+  return headers.join(',')+'\n'+rows.map(r=>Object.values(r).map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+}
+
+function downloadReport(type) {
+  let csv, filename;
+  if(type==='sprint'){
+    csv=toCSV(['Task','Owner','Type','Priority','Est Hours','Status','Definition of Done'],
+      state.sprintTasks.map(t=>({name:t.name,owner:t.owner,type:t.type,priority:t.priority,hours:t.hours,status:t.status,dod:t.dod})));
+    filename='farmrobo_sprint_report.csv';
+  } else if(type==='test'){
+    csv=toCSV(['Date','Test Type','Product','Component / Tier','Engineer / Operator','Result / Failures','Remarks'],
+      state.tests.map(t=>({date:t.date,type:t.type,product:t.product,comp:t.component||t.tier||'',eng:t.engineer||t.operator||'',result:t.result||t.failClass||'',remarks:t.remarks||''})));
+    filename='farmrobo_test_log.csv';
+  } else if(type==='blockers'){
+    csv=toCSV(['Date','Engineer','Task','Blocker'],
+      state.logs.filter(l=>l.blocker).map(l=>({date:l.date,eng:l.engineer,task:l.task,blocker:l.blocker})));
+    filename='farmrobo_blocker_report.csv';
+  } else {
+    csv=toCSV(['Date','Description','Raised By','Task Displaced'],
+      state.interrupts.map(i=>({date:i.date,desc:i.desc,by:i.by,disp:i.displaced||''})));
+    filename='farmrobo_interrupt_log.csv';
+  }
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+}
+
+init();
+</script>
+</body>
+</html>
